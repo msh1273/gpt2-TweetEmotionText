@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>GPT2-TweetEmotionText</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+</head>
+<script type="text/javascript">
+    let time_obj = undefined;
+    let flag = undefined;
+    let chars = undefined;
+
+    window.onload = () => {
+        time_obj = document.getElementById("timer");
+        flag = false;       // 더블 클릭 체크
+    }
+
+
+    function double_submit_check() {
+        if (flag) {
+            console.log("double");
+            return true;
+        }
+        else {
+            flag = true;
+
+            return false;
+        }
+    }
+
+
+    function send_req() {
+        if (double_submit_check()){
+            return ;
+        }
+
+        let sequence = document.getElementById("sequence").value;
+        let maxlength = document.getElementById("maxlength").value;
+
+        if (maxlength == '') {
+            document.getElementById('warning').innerText = 'Please fill Max_length!';
+            flag = false;
+            return ;
+        }
+
+        if (sequence == '') {
+            document.getElementById('warning').innerText = 'Please fill Sequence!';
+            flag = false;
+            return ;
+        }
+
+        const formData = new FormData();
+        const url = "/generate";
+        let start = 0;
+
+        formData.append('sequence', sequence);
+        formData.append('maxlength', maxlength);
+
+
+        // timer
+        timer = setInterval(() => {
+            start += 1;
+            time_obj.innerText = `${start / 10} 's`;
+        }, 100);
+
+
+        fetch (url, { method: 'POST', body: formData, })
+        .then(response => {
+            if (response.status === 200) {
+                return response.json();
+            } else {
+                clearInterval(timer);
+                flag = false;
+            }
+        }).catch(err => {
+            clearInterval(timer);
+            flag = false;
+            document.getElementById('warning').innerText = err;
+        }).then(data => {
+            const result = document.getElementById('result');
+            result.innerHTML = data[0];
+            clearInterval(timer);
+            time_obj.innerText = 'Done!';
+            flag = false;
+        }).catch(err => {
+            clearInterval(timer);
+            flag = false;
+            document.getElementById('warning').innerText = err;
+        });
+
+    }
+
+</script>
+<body>
+    <div class="styles">
+        <style>
+                #button{
+                    margin-top: 10px;
+                    margin-bottom: 10px;
+                    border-top-left-radius: 5pt;
+                    border-top-right-radius: 5pt;
+                    border-bottom-left-radius: 5pt;
+                    border-bottom-right-radius: 5pt;
+                }
+
+                #length{
+                    width: 70px;
+                    height: 30px;
+                    border-top-left-radius: 5pt;
+                    border-top-right-radius: 5pt;
+                    border-bottom-left-radius: 5pt;
+                    border-bottom-right-radius: 5pt;
+                }
+
+                table {
+                  border-spacing: 10px;
+                  border-collapse: separate;
+                }
+
+        </style>
+    </div>
+    <div class="container">
+        <div class="jumbotron mt-3">
+            <div class="intro">
+                <br>
+                <!-- Project title -->
+                <h1>GPT2-Emotion</h1><br>
+                <a>Try using the gpt2 model trained on tweets-emotion data</a><br><br>
+                <a>Github : </a> <a href="https://github.com/msh1273/gpt2-TweetEmotionText" target="_blank">gpt2-TweetEmotionText/</a><br>
+                <a>Open API : </a> <a href="" target="_blank">On Ainize</a><br>
+                <a>DataSet : </a> <a href="https://www.kaggle.com/pashupatigupta/emotion-detection-from-text" target="_blank"> on Kaggle </a><br>
+                <a>License : </a> <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank">CC0</a><br>
+            </div>
+
+            <hr width="90%">
+
+            <div class="Notice">
+                <h3>Notice</h3>
+                <ul>
+                    <li>한글입력은 지원하지 않습니다.</li>
+                </ul>
+            </div>
+
+            <hr width="90%">
+
+            <div class="sample">
+                <h3><label>Example</label></h3>
+                <h5><label>Sequence</label></h5>
+                <label>what?????</label>
+                <h5><label>Max_length</label></h5>
+                <label>20</label><br><br>
+                <h5><label>Result</label></h5>
+                <label>what?????I want to do a greece project.. but I have to work till Monday lol</label><br><br>
+            </div>
+
+            <br><hr width="90%">
+
+            <div class="generate">
+                <h3>Try it!</h3><br>
+                <label>Sequence</label>
+                <div><textarea type="text" id="sequence" style="width:40%"></textarea></div>
+                <label>Max_length</label>
+                <div><textarea type="text" id="maxlength" style="width:80%; height: 100px"></textarea></div>
+                <button class="btn btn-primary btn=lg" type="submit" id="button" onclick="send_req();">Summit</button><br>
+                <label>Timer:&nbsp;</label><label id="timer">0.0</label><br>
+                <b><label id="warning" style="color:red;"></label></b>
+            </div>
+
+            <hr width="90%">
+
+            <div class="result">
+                <h3><label>Result</label></h3>
+                <label id="result"></label>
+            </div>
+
+            <br><hr width="50%">
+        </div>
+    </div>
+</body>
+</html>
